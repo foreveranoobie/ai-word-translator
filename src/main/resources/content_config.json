@@ -1,0 +1,9 @@
+{
+  "maxOutputTokens": 1500,
+  "temperature": 1.0,
+  "thinkingConfig": {
+    "thinkingLevel": "HIGH"
+  },
+  "topP": 0.5,
+  "responseMimeType": "application/json"
+}

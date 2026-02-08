@@ -1,3 +1,3 @@
 package com.storozhuk.translator.data
 
-data class WordRowData(val word: String, val explanation: String)
+data class WordRowData(val word: String, val translation: String)

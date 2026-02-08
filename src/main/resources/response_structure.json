@@ -1,0 +1,58 @@
+{
+  "type": "object",
+  "properties": {
+    "word": {
+      "type": "string"
+    },
+    "language": {
+      "type": "string"
+    },
+    "definitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "meaning": {
+            "type": "string"
+          },
+          "usage": {
+            "type": "string"
+          },
+          "example": {
+            "type": "object",
+            "properties": {
+              "english": {
+                "type": "string"
+              },
+              "foreignLanguage": {
+                "type": "string"
+              }
+            },
+            "propertyOrdering": [
+              "english",
+              "foreignLanguage"
+            ],
+            "required": [
+              "english",
+              "foreignLanguage"
+            ]
+          }
+        },
+        "propertyOrdering": [
+          "meaning",
+          "usage",
+          "example"
+        ],
+        "required": [
+          "usage",
+          "example"
+        ]
+      }
+    }
+  },
+  "propertyOrdering": [
+    "word",
+    "language",
+    "definitions"
+  ]
+}
