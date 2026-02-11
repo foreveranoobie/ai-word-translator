@@ -20,6 +20,11 @@ class WordsService(
         wordsRepository.saveWord(filename, explanation)
     }
 
+    fun updateWord(wordExplanationData: WordExplanationData) {
+        val contents = objectMapper.writeValueAsString(wordExplanationData)
+        saveWord(wordExplanationData.word!!, contents)
+    }
+
     fun getAllWordsWithContent(): MutableMap<String, WordExplanationData> {
         val wordsMap = wordsRepository.getAllWordsWithContent()
         val mappedResult = wordsMap.mapValues {

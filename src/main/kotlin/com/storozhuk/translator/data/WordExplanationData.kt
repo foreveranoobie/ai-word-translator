@@ -6,7 +6,7 @@ package com.storozhuk.translator.data
 data class WordExplanationData(
     val word: String? = null,
     val language: String? = null,
-    val definitions: Array<WordDefinitionData>? = null
+    var definitions: MutableList<WordDefinitionData>? = null
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -16,7 +16,9 @@ data class WordExplanationData(
 
         if (word != other.word) return false
         if (language != other.language) return false
-        if (!definitions.contentEquals(other.definitions)) return false
+        if (definitions != null) {
+            if (definitions != other.definitions) return false
+        }
 
         return true
     }
@@ -24,7 +26,7 @@ data class WordExplanationData(
     override fun hashCode(): Int {
         var result = word.hashCode()
         result = 31 * result + language.hashCode()
-        result = 31 * result + definitions.contentHashCode()
+        result = 31 * result + definitions.hashCode()
         return result
     }
 }
