@@ -31,4 +31,17 @@ class WordsRepository : Serializable {
             file.nameWithoutExtension to file.readText()
         } ?: emptyMap()
     }
+
+    fun findWordByName(name: String): String? {
+        val file = wordsDir.listFiles()?.firstOrNull { it.nameWithoutExtension == name } ?: return null
+        return file.readText()
+    }
+
+    fun deleteWord(filename: String): Boolean {
+        val file = File(wordsDir, filename)
+        if (file.exists()) {
+            return file.delete()
+        }
+        return false
+    }
 }

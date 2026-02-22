@@ -17,7 +17,14 @@ class WordsService(
 
     fun saveWord(word: String, explanation: String) {
         val filename = "${word}.txt"
-        wordsRepository.saveWord(filename, explanation)
+        if(wordsRepository.findWordByName(filename) == null) {
+            wordsRepository.saveWord(filename, explanation)
+        }
+    }
+
+    fun existsWord(word: String): Boolean {
+        val filename = "${word}.txt"
+        return wordsRepository.findWordByName(filename) != null
     }
 
     fun updateWord(wordExplanationData: WordExplanationData) {
@@ -54,6 +61,11 @@ class WordsService(
             words.add(getWordRowDataFromExplanation(explanationData)!!)
         }
         return words
+    }
+
+    fun deleteWord(word: String): Boolean {
+        val filename = "${word}.txt"
+        return wordsRepository.deleteWord(filename)
     }
 
     private fun getWordRowDataFromExplanation(explanationData: WordExplanationData): WordRowData? {

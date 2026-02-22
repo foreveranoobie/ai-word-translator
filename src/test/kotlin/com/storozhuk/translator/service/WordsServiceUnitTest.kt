@@ -12,8 +12,11 @@ import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.never
 import org.mockito.junit.jupiter.MockitoExtension
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertFalse
 
 @ExtendWith(MockitoExtension::class)
 class WordsServiceUnitTest {
@@ -39,6 +42,21 @@ class WordsServiceUnitTest {
 
         // then
         verify(wordsRepository).saveWord(expectedFilename, explanation)
+    }
+
+    @Test
+    fun shouldNotSaveWord_whenSaveWord_givenRepositoryReturnsNonNull() {
+        // given
+        val word = "hello"
+        val explanation = "a greeting"
+        val expectedFilename = "${word}.txt"
+        `when`(wordsRepository.findWordByName(expectedFilename)).thenReturn("existing content")
+
+        // when
+        sut.saveWord(word, explanation)
+
+        // then verify saveWord was not called
+        verify(wordsRepository, never()).saveWord(expectedFilename, explanation)
     }
 
     @Test
@@ -158,6 +176,34 @@ class WordsServiceUnitTest {
     }
 
     @Test
+    fun shouldReturnTrue_whenExistsWord_givenRepositoryReturnsNonNull() {
+        // given
+        val word = "hello"
+        val expectedFilename = "${word}.txt"
+        `when`(wordsRepository.findWordByName(expectedFilename)).thenReturn("content")
+
+        // when
+        val result = sut.existsWord(word)
+
+        // then
+        assertTrue(result)
+    }
+
+    @Test
+    fun shouldReturnFalse_whenExistsWord_givenRepositoryReturnsNull() {
+        // given
+        val word = "nonexistent"
+        val expectedFilename = "${word}.txt"
+        `when`(wordsRepository.findWordByName(expectedFilename)).thenReturn(null)
+
+        // when
+        val result = sut.existsWord(word)
+
+        // then
+        assertFalse(result)
+    }
+
+    @Test
     fun shouldReturnListOfWordRowData_whenGetTranslationsFromExplanationDataList_givenListWith2Explanations() {
         // given
         val wordExplanation1 = WordExplanationData(
@@ -210,5 +256,20 @@ class WordsServiceUnitTest {
 
         // then
         assertEquals(expectedList, result)
+    }
+
+    @Test
+    fun shouldReturnTrue_whenDeleteWord_givenWordString() {
+        // given
+        val word = "hello"
+        val expectedFilename = "${word}.txt"
+        `when`(wordsRepository.deleteWord(expectedFilename)).thenReturn(true)
+
+        // when
+        val result = sut.deleteWord(word)
+
+        // then
+        assertTrue(result)
+        verify(wordsRepository).deleteWord(expectedFilename)
     }
 }

@@ -1,9 +1,7 @@
 package com.storozhuk.translator.ui
 
 import com.github.mvysny.karibudsl.v10.KComposite
-import com.github.mvysny.karibudsl.v10.horizontalAlignSelf
 import com.github.mvysny.karibudsl.v10.onLeftClick
-import com.github.mvysny.karibudsl.v10.verticalAlignSelf
 import com.github.mvysny.karibudsl.v10.verticalLayout
 import com.github.mvysny.kaributools.setPrimary
 import com.storozhuk.translator.data.WordExplanationData
@@ -17,6 +15,8 @@ import com.vaadin.flow.component.html.Div
 import com.vaadin.flow.component.html.Image
 import com.vaadin.flow.component.html.ListItem
 import com.vaadin.flow.component.html.UnorderedList
+import com.vaadin.flow.component.icon.Icon
+import com.vaadin.flow.component.icon.VaadinIcon
 import com.vaadin.flow.component.orderedlayout.FlexComponent
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
@@ -31,10 +31,12 @@ class MainPage(private val wordsService: WordsService) : KComposite() {
 
     private val root = ui {
         verticalLayout {
-
             val horizonalLayout = addExplainInput()
-
+            val searchLayoutInput = addSearchInput()
+            searchLayoutInput.style.setMarginLeft("50px")
+            horizonalLayout.add(searchLayoutInput)
             this.add(horizonalLayout)
+
             words = wordsService.getAllWordsWithContent()
             initWordsTable()
             updateWordsGridItems()
@@ -59,10 +61,11 @@ class MainPage(private val wordsService: WordsService) : KComposite() {
             example.add(ListItem("Example: ${definition.example!!.foreignLanguage}"))
             example.add(ListItem("Original: ${definition.example.english}"))
             meaning.add(example)
+            meaning.addClassName("ul-main")
 
             val deleteDefinitionBtn = Image("img/red_cross.jpg", "Delete definition")
-            deleteDefinitionBtn.width = "35px"
-            deleteDefinitionBtn.height = "35px"
+            deleteDefinitionBtn.width = "20px"
+            deleteDefinitionBtn.height = "20px"
             deleteDefinitionBtn.element.addEventListener("mouseover") {
                 deleteDefinitionBtn.style.setBackgroundColor("#ededed")
             }
@@ -73,52 +76,83 @@ class MainPage(private val wordsService: WordsService) : KComposite() {
                 wordExplanation.definitions!!.remove(definition)
                 definitions.remove(row)
             }
+
+            val buttonWrapper = Div(deleteDefinitionBtn)
+            buttonWrapper.style.setMarginLeft("auto")
+
             meaning.style.setMarginBottom("15px")
-            meaning.element.addEventListener("mouseover") {
-                meaning.style.setBackgroundColor("#ededed")
-            }
-            meaning.element.addEventListener("mouseout") {
-                meaning.style.setBackgroundColor("transparent")
-            }
-            row.add(meaning, deleteDefinitionBtn)
+            row.add(meaning, buttonWrapper)
+            row.setVerticalComponentAlignment(FlexComponent.Alignment.CENTER, buttonWrapper)
             definitions.add(row)
         }
+        definitions.addClassName("custom-layout-grid")
+
+
         val addBtnImage = Image("img/add_btn.png", "Add translation")
-        addBtnImage.width = "40px"
-        addBtnImage.height = "40px"
-        addBtnImage.element.addEventListener("mouseover") {
-            addBtnImage.style.setBackgroundColor("#ededed")
+        addBtnImage.width = "25px"
+        addBtnImage.height = "25px"
+
+        val addBtn = Button("Add explanation") {
+            val translationDialog = AddTranslationDialog(wordExplanation, wordsService)
+            translationDialog.addClassName("popup-dialog")
+            translationDialog.open()
         }
-        addBtnImage.element.addEventListener("mouseout") {
-            addBtnImage.style.setBackgroundColor("transparent")
-        }
-        addBtnImage.addClickListener {
-            AddTranslationDialog(wordExplanation, wordsService).open()
-        }
-        definitions.add(addBtnImage)
-        content.add(definitions)
+        addBtn.addClassName("add-explanation-button")
+        addBtn.icon = Icon(VaadinIcon.PLUS_CIRCLE)
+        content.addClassName("explanation-layout")
+        content.add(definitions, addBtn)
 
         val closeButton = Button("Close") {
-            wordsService.updateWord(wordExplanation)
             dialog.close()
         }
         dialog.addClosedListener {
             wordsService.updateWord(wordExplanation)
         }
 
-        dialog.add(content, closeButton)
+        dialog.add(content)
+        dialog.footer.add(closeButton)
+        dialog.addClassName("popup-dialog")
+
         dialog.open()
     }
 
     private fun initWordsTable() {
         grid = Grid<WordRowData>()
-        grid.addColumn { it.word }.setHeader("Word")
-        grid.addColumn { it.translation }.setHeader("Translation")
-
-        grid.addSelectionListener { event ->
-            event.firstSelectedItem.ifPresent { selectedWord ->
-                showDetailDialog(words[selectedWord.word]!!)
+        grid.addComponentColumn { rowData ->
+            val wordDiv = Div()
+            wordDiv.text = rowData.word
+            wordDiv.addClickListener {
+                showDetailDialog(words[rowData.word]!!)
             }
+            wordDiv
+        }.setHeader("Word").apply {
+            flexGrow = 1
+        }
+
+        grid.addComponentColumn { rowData ->
+            val translationDiv = Div()
+            translationDiv.text = rowData.translation
+            translationDiv.addClickListener {
+                showDetailDialog(words[rowData.word]!!)
+            }
+            translationDiv
+        }.setHeader("Translation").apply {
+            flexGrow = 2
+        }
+
+        grid.addComponentColumn { rowData ->
+            val deleteIcon = VaadinIcon.CLOSE_SMALL.create()
+            deleteIcon.style.setColor("red")
+            deleteIcon.addClickListener { event ->
+                if (wordsService.deleteWord(rowData.word)) {
+                    words.remove(rowData.word)
+                    updateWordsGridItems()
+                }
+            }
+            deleteIcon
+        }.apply {
+            flexGrow = 0
+            width = "50px"
         }
     }
 
@@ -130,9 +164,9 @@ class MainPage(private val wordsService: WordsService) : KComposite() {
         val button = Button()
         button.text = "Explain"
         button.setPrimary()
-        button.addClickShortcut(Key.ENTER)
+        button.addClickShortcut(Key.ENTER).listenOn(fieldName)
         button.onLeftClick {
-            if (!fieldName.value.trim().isEmpty()) {
+            if (fieldName.value.isNotBlank() && !wordsService.existsWord(fieldName.value)) {
                 val explanation = wordsService.explainWord(fieldName.value.toString())
                 showDetailDialog(explanation)
                 words.put(explanation.word!!, explanation)
@@ -143,6 +177,37 @@ class MainPage(private val wordsService: WordsService) : KComposite() {
         button.height = "50%"
         horizonalLayout.add(button)
         horizonalLayout.setVerticalComponentAlignment(FlexComponent.Alignment.END, button)
+        return horizonalLayout
+    }
+
+    private fun addSearchInput(): HorizontalLayout {
+        val horizonalLayout = HorizontalLayout()
+        val fieldName = TextField("Search for a word")
+        fieldName.className = "bordered"
+        horizonalLayout.add(fieldName)
+        val searchButton = Button()
+        searchButton.text = "Search"
+        searchButton.addClickShortcut(Key.ENTER).listenOn(fieldName)
+        searchButton.onLeftClick {
+            if (fieldName.value.isNotBlank()) {
+                val searchResult = wordsService.getTranslationsFromExplanationDataList(
+                    words.values.filter { it.word!!.contains(fieldName.value, ignoreCase = true) }
+                )
+                grid.setItems(searchResult)
+            } else {
+                updateWordsGridItems()
+            }
+        }
+        //searchButton.height = "50%"
+
+        val resetButton = Button("Reset") {
+            fieldName.value = ""
+            updateWordsGridItems()
+        }
+       //resetButton.height = "50%"
+        horizonalLayout.add(searchButton, resetButton)
+        horizonalLayout.setVerticalComponentAlignment(FlexComponent.Alignment.END, searchButton)
+        horizonalLayout.setVerticalComponentAlignment(FlexComponent.Alignment.END, resetButton)
         return horizonalLayout
     }
 

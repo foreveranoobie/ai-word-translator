@@ -1,0 +1,80 @@
+html {
+    background-color: #A1CDA8;
+    font-family: 'Tahoma', sans-serif;
+}
+
+.popup-dialog::part(overlay) {
+    background-color: #C5E7E2;
+}
+
+.popup-dialog::part(header) {
+    background-color: #B5DFCA;
+}
+
+vaadin-button {
+  background-color: #a4899f;
+  color: white;
+  border: none;
+  border-radius: 8px;
+}
+
+.add-explanation-button {
+  background-color: #e7e2c5;
+  border: none;
+  border-radius: 8px;
+  color: #1e4d23;
+  margin-bottom: 20px;
+}
+
+vaadin-grid {
+    background-color: #FAF9F6;
+    border: 1px solid #6B9E78;
+}
+
+vaadin-grid::part(body-cell) {
+    background-color: #FAF9F6;
+}
+
+vaadin-grid::part(header-cell) {
+    background-color: #6B9E78;
+    color: #FFFFFF;
+}
+
+.custom-layout-grid {
+    background-color: #FAF9F6;
+    border-radius: 8px;
+    padding-top: 15px;
+    padding-left: 25px;
+    padding-right: 12px;
+    margin-bottom: 2px;
+}
+
+.explanation-layout {
+  gap: 0;
+}
+
+.ul-main {
+  padding-left: 0;
+}
+
+vaadin-text-area {
+  width: 100%;
+  margin-bottom: 5px;
+}
+
+textarea {
+  max-height: calc(2lh);
+  resize: none;
+  overflow-y: inherit;
+  box-sizing: border-box;
+}
+
+vaadin-notification-card::part(content) {
+  background-color: #d12d2d;
+  color: #FDF5F5;
+}
+
+vaadin-notification-card::part(overlay) {
+  background-color: #d12d2d;
+  color: #FDF5F5;
+}
