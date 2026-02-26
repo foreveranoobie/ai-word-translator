@@ -154,6 +154,8 @@ class MainPage(private val wordsService: WordsService) : KComposite() {
             flexGrow = 0
             width = "50px"
         }
+
+        grid.height = "75vh"
     }
 
     private fun addExplainInput(): HorizontalLayout {
@@ -198,13 +200,11 @@ class MainPage(private val wordsService: WordsService) : KComposite() {
                 updateWordsGridItems()
             }
         }
-        //searchButton.height = "50%"
 
         val resetButton = Button("Reset") {
             fieldName.value = ""
             updateWordsGridItems()
         }
-       //resetButton.height = "50%"
         horizonalLayout.add(searchButton, resetButton)
         horizonalLayout.setVerticalComponentAlignment(FlexComponent.Alignment.END, searchButton)
         horizonalLayout.setVerticalComponentAlignment(FlexComponent.Alignment.END, resetButton)

@@ -76,6 +76,7 @@
         <configuration>
           <mainClass>com.storozhuk.translator.Application</mainClass>
           <fork>false</fork>
+          <outputDirectory>docker</outputDirectory>
         </configuration>
       </plugin>
       <plugin>
