@@ -1,46 +1,73 @@
 package com.storozhuk.translator.service
 
+import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.storozhuk.translator.data.WordDefinitionData
+import com.storozhuk.translator.data.WordDefinitionExampleData
 import com.storozhuk.translator.data.WordExplanationData
 import com.storozhuk.translator.data.WordRowData
 import com.storozhuk.translator.db.WordsRepository
+import com.storozhuk.translator.mapper.WordExplanationMapper
+import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
 class WordsService(
     @Autowired private val wordsRepository: WordsRepository,
-    @Autowired private val agentClient: AgentClient
+    @Autowired private val agentClient: AgentClient,
+    @Autowired private val wordExplanationMapper: WordExplanationMapper
 ) {
 
     private val objectMapper: ObjectMapper = ObjectMapper()
 
+    @PostConstruct
+    fun init() {
+        objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true)
+    }
+
     fun saveWord(word: String, explanation: String) {
-        val filename = "${word}.txt"
-        if(wordsRepository.findWordByName(filename) == null) {
-            wordsRepository.saveWord(filename, explanation)
+        if (!existsWord(word)) {
+            val wordExplanationData =
+                objectMapper.readValue(explanation, WordExplanationData::class.java)
+            val entity = wordExplanationMapper.toDocument(wordExplanationData)
+            wordsRepository.save(entity)
         }
     }
 
     fun existsWord(word: String): Boolean {
-        val filename = "${word}.txt"
-        return wordsRepository.findWordByName(filename) != null
+        return wordsRepository.existsByWord(word)
     }
 
     fun updateWord(wordExplanationData: WordExplanationData) {
-        val contents = objectMapper.writeValueAsString(wordExplanationData)
-        saveWord(wordExplanationData.word!!, contents)
+        val entity = wordsRepository.findById(wordExplanationData.id!!)
+        entity.ifPresent {
+            val updatedEntity = wordExplanationMapper.updateFromData(it, wordExplanationData)
+            wordsRepository.save(updatedEntity)
+        }
     }
 
     fun getAllWordsWithContent(): MutableMap<String, WordExplanationData> {
-        val wordsMap = wordsRepository.getAllWordsWithContent()
-        val mappedResult = wordsMap.mapValues {
-            objectMapper.readValue(
-                it.value, WordExplanationData::class.java
+        return wordsRepository.findAll().associate { document ->
+            val data = WordExplanationData(
+                id = document.id,
+                word = document.word,
+                language = document.language,
+                definitions = document.definitions?.map { definitionDocument ->
+                    WordDefinitionData(
+                        meaning = definitionDocument.meaning,
+                        usage = definitionDocument.usage,
+                        example = definitionDocument.example?.let { exampleDocument ->
+                            WordDefinitionExampleData(
+                                english = exampleDocument.english,
+                                foreignLanguage = exampleDocument.foreignLanguage
+                            )
+                        }
+                    )
+                }?.toMutableList()
             )
-        }.mapKeys { it.value.word!! }.toMutableMap()
-
-        return mappedResult
+            document.word!! to data
+        }.toMutableMap()
     }
 
     fun explainWord(word: String): WordExplanationData {
@@ -52,7 +79,7 @@ class WordsService(
                 response, WordExplanationData::class.java
             )
         }
-        return WordExplanationData(word, "", null)
+        return WordExplanationData(null, word, "", null)
     }
 
     fun getTranslationsFromExplanationDataList(explanationDataList: Collection<WordExplanationData>): List<WordRowData> {
@@ -64,8 +91,7 @@ class WordsService(
     }
 
     fun deleteWord(word: String): Boolean {
-        val filename = "${word}.txt"
-        return wordsRepository.deleteWord(filename)
+        return wordsRepository.deleteByWord(word) > 0
     }
 
     private fun getWordRowDataFromExplanation(explanationData: WordExplanationData): WordRowData? {

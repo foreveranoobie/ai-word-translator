@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.nio.charset.Charset
 
-
 @Service
 class AgentClient {
 

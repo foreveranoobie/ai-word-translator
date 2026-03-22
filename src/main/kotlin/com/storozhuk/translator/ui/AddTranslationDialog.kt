@@ -13,6 +13,9 @@ import com.vaadin.flow.component.textfield.TextArea
 import com.vaadin.flow.component.textfield.TextField
 
 class AddTranslationDialog(val wordExplanation: WordExplanationData, val wordsService: WordsService) : Dialog() {
+
+    var isNewAdded = false
+
     init {
         headerTitle = "Add translation for ${wordExplanation.word}"
         maxWidth = "80%"
@@ -43,6 +46,8 @@ class AddTranslationDialog(val wordExplanation: WordExplanationData, val wordsSe
                 }
                 wordExplanation.definitions!!.add(wordDefinition)
                 wordsService.updateWord(wordExplanation)
+                isNewAdded = true
+                close()
             }
         }
         addButton.style.setMarginRight("10px")

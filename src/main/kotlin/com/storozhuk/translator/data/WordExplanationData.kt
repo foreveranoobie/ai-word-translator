@@ -1,9 +1,13 @@
 package com.storozhuk.translator.data
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import org.bson.types.ObjectId
+
 /**
  * Represents the structure of an agent response
  */
 data class WordExplanationData(
+    @JsonIgnore var id: ObjectId? = null,
     val word: String? = null,
     val language: String? = null,
     var definitions: MutableList<WordDefinitionData>? = null
@@ -14,6 +18,7 @@ data class WordExplanationData(
 
         other as WordExplanationData
 
+        if (id != other.id) return false
         if (word != other.word) return false
         if (language != other.language) return false
         if (definitions != null) {
@@ -24,7 +29,8 @@ data class WordExplanationData(
     }
 
     override fun hashCode(): Int {
-        var result = word.hashCode()
+        var result = id?.hashCode() ?: 0
+        result = 31 * result + word.hashCode()
         result = 31 * result + language.hashCode()
         result = 31 * result + definitions.hashCode()
         return result
