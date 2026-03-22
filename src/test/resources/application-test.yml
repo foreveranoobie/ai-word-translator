@@ -1,0 +1,9 @@
+spring:
+  data:
+    mongodb:
+      # Use embedded MongoDB for tests (optional)
+      # uri: mongodb://localhost:27017/translator_test
+      uri: ${MONGODB_URI:mongodb://localhost:27017/translator_test}
+  test:
+    mockmvc:
+      print: true
